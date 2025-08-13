@@ -39,9 +39,19 @@ function updatePosition(position: vec3, bounds: Bounds, scaleMultiplier: number)
 function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptions): Tracker {
   const size = useWindowSize()
   const { scroll, onScroll } = useScrollbar()
+  const __lenis = useCanvasStore((state) => state.__lenis)
+  const useRawScroll = useCanvasStore((state) => state.useRawScroll)
+  const useRawScrollOnMobile = useCanvasStore((state) => state.useRawScrollOnMobile)
   const scaleMultiplier = useCanvasStore((state) => state.scaleMultiplier)
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const debug = useCanvasStore((state) => state.debug)
+
+  const isMobileDevice = useMemo(() => {
+    const uaMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    const mmMobile =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+    return !!(uaMobile || mmMobile)
+  }, [])
 
   // extend defaults with optional options
   const { rootMargin, threshold, autoUpdate, wrapper } = useMemo(() => {
@@ -135,13 +145,31 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
         return
       }
 
-      const _scroll = overrideScroll || scroll
+      const shouldUseRaw = !!useRawScroll || (!!useRawScrollOnMobile && isMobileDevice)
+
+      const isHorizontal = (overrideScroll || scroll).scrollDirection === 'horizontal'
+
+      let sourceScroll: ScrollData = (overrideScroll as any) || scroll
+
+      if (shouldUseRaw) {
+        const rawVal: any = (__lenis as any)?.targetScroll
+        const winScroll =
+          typeof window !== 'undefined' ? (isHorizontal ? window.scrollX : window.scrollY) : 0
+        const currentScroll = typeof rawVal === 'number' && Number.isFinite(rawVal) ? rawVal : winScroll
+        const safeScroll = Number.isFinite(currentScroll) ? currentScroll : 0
+        sourceScroll = {
+          ...scroll,
+          y: isHorizontal ? 0 : safeScroll,
+          x: isHorizontal ? safeScroll : 0,
+        }
+      }
+
+      const _scroll = sourceScroll
 
       updateBounds(bounds, rect, _scroll, size)
       updatePosition(position, bounds, scaleMultiplier)
 
       // scrollState setup based on scroll direction
-      const isHorizontal = _scroll.scrollDirection === 'horizontal'
       const sizeProp = isHorizontal ? 'width' : 'height'
       const startProp = isHorizontal ? 'left' : 'top'
 
@@ -151,7 +179,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
       scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1) // percent of item height in view
       scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1) // percent of window height scrolled since visible
     },
-    [track, size, scaleMultiplier, scroll]
+    [track, size, scaleMultiplier, scroll, useRawScroll, useRawScrollOnMobile, __lenis, isMobileDevice]
   )
 
   // update scrollState in viewport
