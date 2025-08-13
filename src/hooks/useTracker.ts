@@ -46,6 +46,13 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
   const pageReflow = useCanvasStore((state) => state.pageReflow)
   const debug = useCanvasStore((state) => state.debug)
 
+  const isMobileDevice = useMemo(() => {
+    const uaMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    const mmMobile =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+    return !!(uaMobile || mmMobile)
+  }, [])
+
   // extend defaults with optional options
   const { rootMargin, threshold, autoUpdate, wrapper } = useMemo(() => {
     const target = { rootMargin: '0%', threshold: 0, autoUpdate: true } as TrackerOptions
@@ -138,21 +145,22 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
         return
       }
 
-      const uaMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-      const mmMobile = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
-      const isMobile = uaMobile || mmMobile
-      const shouldUseRaw = !!useRawScroll || (!!useRawScrollOnMobile && isMobile)
+      const shouldUseRaw = !!useRawScroll || (!!useRawScrollOnMobile && isMobileDevice)
 
       const isHorizontal = (overrideScroll || scroll).scrollDirection === 'horizontal'
 
       let sourceScroll: ScrollData = (overrideScroll as any) || scroll
 
       if (shouldUseRaw) {
-        const currentScroll = __lenis?.targetScroll ?? (isHorizontal ? window.scrollX : window.scrollY)
+        const rawVal: any = (__lenis as any)?.targetScroll
+        const winScroll =
+          typeof window !== 'undefined' ? (isHorizontal ? window.scrollX : window.scrollY) : 0
+        const currentScroll = typeof rawVal === 'number' && Number.isFinite(rawVal) ? rawVal : winScroll
+        const safeScroll = Number.isFinite(currentScroll) ? currentScroll : 0
         sourceScroll = {
           ...scroll,
-          y: isHorizontal ? 0 : currentScroll,
-          x: isHorizontal ? currentScroll : 0,
+          y: isHorizontal ? 0 : safeScroll,
+          x: isHorizontal ? safeScroll : 0,
         }
       }
 
@@ -171,7 +179,7 @@ function useTracker(track: MutableRefObject<HTMLElement>, options?: TrackerOptio
       scrollState.visibility = mapLinear(pxInside, 0, bounds[sizeProp], 0, 1) // percent of item height in view
       scrollState.viewport = mapLinear(pxInside, 0, size[sizeProp], 0, 1) // percent of window height scrolled since visible
     },
-    [track, size, scaleMultiplier, scroll, useRawScroll, useRawScrollOnMobile, __lenis]
+    [track, size, scaleMultiplier, scroll, useRawScroll, useRawScrollOnMobile, __lenis, isMobileDevice]
   )
 
   // update scrollState in viewport
