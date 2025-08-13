@@ -138,6 +138,70 @@ import { SmoothScrollbar } from '@14islands/r3f-scroll-rig/scrollbar'
 
 💡 _A The `scrollbar` import target excludes all `@react-three/fiber`, `three` related imports and allows you to slim down the bundle size._
 
+## 📌 Raw Scroll Options (`useRawScroll` / `useRawScrollOnMobile`)
+
+### Why this exists
+By default, `@14islands/r3f-scroll-rig` uses [Lenis](https://github.com/studio-freight/lenis) to smooth scroll values before passing them to `<ScrollScene>`. This creates a cinematic, eased motion for both HTML and 3D content — but it also means the 3D layer is always a fraction of a second behind the actual scroll position.
+
+On desktop, this is usually desirable. On mobile/touch devices, it can make 3D content feel laggy compared to the HTML layer, especially when dragging with your finger.
+
+### What these props do
+- **`useRawScroll`**  
+  Forces ScrollRig to use Lenis’ `targetScroll` (instantaneous scroll position) for all calculations instead of the smoothed `scroll` value. This makes 3D updates perfectly in sync with the browser’s native scroll position.
+
+- **`useRawScrollOnMobile`**  
+  Same as above, but only applies on mobile/touch devices. On desktop, smoothed scroll is still used for cinematic feel.
+
+### When to use
+**Use `useRawScrollOnMobile`** when:
+- You want HTML to stay buttery smooth on desktop
+- You want 3D to feel finger‑locked and responsive on mobile
+- You don’t want to change any scene code — this works globally
+
+**Use `useRawScroll`** when:
+- You want all devices to have instant, 1:1 scroll → 3D sync
+- You’re building HUD‑style or UI‑locked 3D elements that must match HTML exactly
+- You don’t care about eased/cinematic scroll motion
+
+**Avoid raw scroll** if:
+- Your 3D scenes are heavy and can’t maintain 60 fps — raw scroll will make stutter more visible
+- You rely on the eased motion for timing animations
+
+### Example
+```jsx
+// Mobile: raw scroll, Desktop: smoothed scroll
+<SmoothScrollbar useRawScrollOnMobile config={{ duration: 1.2 }}>
+  {bind => <div {...bind}>{children}</div>}
+</SmoothScrollbar>
+
+// Raw scroll everywhere
+<SmoothScrollbar useRawScroll>
+  {bind => <div {...bind}>{children}</div>}
+</SmoothScrollbar>
+```
+
+### How it works
+When enabled, these props:
+- Detect mobile devices via `navigator.userAgent` and `window.matchMedia('(pointer: coarse)')`
+- Swap all scroll calculations in `ScrollScene` from:
+  ```js
+  lenis.scroll // smoothed
+  ```
+  to:
+  ```js
+  lenis.targetScroll ?? window.scrollY // raw
+  ```
+- All derived values (`progress`, `scale`, `offset`, etc.) automatically use the selected scroll source.
+
+### Trade‑offs
+| Mode                | Pros | Cons |
+|---------------------|------|------|
+| **Smoothed (default)** | Cinematic feel, hides small stutters | Slight lag between input and 3D |
+| **Raw**             | Perfect sync with HTML, instant response | Stutter more visible if fps drops |
+| **Raw on Mobile**   | Best of both worlds — smooth desktop, responsive mobile | Slightly more code complexity |
+
+**Tip:** If you’re unsure, start with `useRawScrollOnMobile` — it fixes the mobile lag problem without changing desktop behavior.
+
 ### `<UseCanvas>`
 
 This component tunnels the children to the GlobalCanvas using the `useCanvas` hook. It's basically just the same, but a bit more user friendly
