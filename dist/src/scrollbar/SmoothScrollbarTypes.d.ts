@@ -1,5 +1,5 @@
 import { ReactElement } from 'react';
-export declare type ScrollCallback = (props: {
+export type ScrollCallback = (props: {
     scroll: number;
     limit: number;
     velocity: number;
@@ -15,8 +15,8 @@ export interface ScrollData {
     direction: number;
     scrollDirection?: string;
 }
-export declare type ScrollToTarget = number | HTMLElement | string;
-export declare type ScrollToConfig = {
+export type ScrollToTarget = number | HTMLElement | string;
+export type ScrollToConfig = {
     offset: number;
     immediate: boolean;
     duration: number;
@@ -35,4 +35,6 @@ export interface ISmoothScrollbar {
     config?: object;
     invalidate?: () => void;
     addEffect?: (cb: any) => () => void;
+    useRawScroll?: boolean;
+    useRawScrollOnMobile?: boolean;
 }

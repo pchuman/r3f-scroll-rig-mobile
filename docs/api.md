@@ -115,10 +115,14 @@ function App({ Component, pageProps }: AppProps) {
 <SmoothScrollbar
   scrollRestoration?: ScrollRestoration = "auto"
   enabled?: boolean = true // smooth scroll or not
-  locked?: boolean = false // lock/disable scroll
-  disablePointerOnScroll?: boolean = true
-  horizontal?: boolean = false
-  config?: object  // lenis config options
+  locked?: boolean = false // stop anim loop
+  disablePointerOnScroll?: boolean = true // [default: true] -- disables pointer-events on html while scrolling
+  horizontal?: boolean = false // horizontal scroll mode
+  updateGlobalState?: boolean = true // if true, updates global state, use r3f addEffect instead of own raf
+  onScroll?: (props) => void // lenis on scroll event
+  config?: object // lenis config
+  useRawScroll?: boolean // when true, ScrollScene calculations use Lenis targetScroll (raw)
+  useRawScrollOnMobile?: boolean // when true, above behavior only on mobile devices
 />
 ```
 

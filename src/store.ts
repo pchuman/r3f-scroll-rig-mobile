@@ -24,6 +24,8 @@ interface ScrollRigStore {
   __lenis: Lenis | undefined
   scrollTo: (target: any) => void
   onScroll: (cb: ScrollCallback) => () => void
+  useRawScroll?: boolean
+  useRawScrollOnMobile?: boolean
 }
 
 const useCanvasStore = create<ScrollRigStore>((set) => ({
@@ -124,6 +126,8 @@ const useCanvasStore = create<ScrollRigStore>((set) => ({
   __lenis: undefined,
   scrollTo: () => {},
   onScroll: () => () => {},
+  useRawScroll: false,
+  useRawScrollOnMobile: false,
 }))
 
 export { useCanvasStore }

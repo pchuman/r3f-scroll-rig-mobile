@@ -39,4 +39,6 @@ export interface ISmoothScrollbar {
   config?: object
   invalidate?: () => void
   addEffect?: (cb: any) => () => void
+  useRawScroll?: boolean
+  useRawScrollOnMobile?: boolean
 }

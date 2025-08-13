@@ -22,6 +22,8 @@ const SmoothScrollbarImpl = (
     config = {},
     invalidate = () => {},
     addEffect,
+    useRawScroll = false,
+    useRawScrollOnMobile = false,
   }: ISmoothScrollbar,
   ref: any
 ) => {
@@ -195,14 +197,14 @@ const SmoothScrollbarImpl = (
     if (updateGlobalState) {
       document.documentElement.classList.toggle('js-smooth-scrollbar-enabled', enabled)
       document.documentElement.classList.toggle('js-smooth-scrollbar-disabled', !enabled)
-      useCanvasStore.setState({ hasSmoothScrollbar: enabled })
+      useCanvasStore.setState({ hasSmoothScrollbar: enabled, useRawScroll, useRawScrollOnMobile })
     }
     return () => {
       // cleanup
       document.documentElement.classList.remove('js-smooth-scrollbar-enabled')
       document.documentElement.classList.remove('js-smooth-scrollbar-disabled')
     }
-  }, [enabled])
+  }, [enabled, useRawScroll, useRawScrollOnMobile])
 
   useEffect(() => {
     locked ? lenis.current?.stop() : lenis.current?.start()

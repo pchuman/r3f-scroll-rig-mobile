@@ -388,6 +388,21 @@ Please read the API docs on using [children as a render function](/docs/api.md#c
 
 </details>
 
+### Using raw scroll for more responsive ScrollScene
+
+To base ScrollScene calculations on raw scroll (Lenis `targetScroll`) instead of the smoothed value:
+
+```tsx
+<SmoothScrollbar useRawScrollOnMobile config={{ duration: 1.2 }}>
+  {bind => <div {...bind}>{children}</div>}
+</SmoothScrollbar>
+```
+
+- `useRawScroll`: use raw scroll everywhere
+- `useRawScrollOnMobile`: use raw scroll only on mobile (detected via `navigator.userAgent`)
+
+When both are false (default), behavior is unchanged and smoothed scroll is used.
+
 # In the wild 🐾
 
 - [14islands.com](https://14islands.com) by [14islands](https://14islands.com)

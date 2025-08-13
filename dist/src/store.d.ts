@@ -20,6 +20,8 @@ interface ScrollRigStore {
     __lenis: Lenis | undefined;
     scrollTo: (target: any) => void;
     onScroll: (cb: ScrollCallback) => () => void;
+    useRawScroll?: boolean;
+    useRawScrollOnMobile?: boolean;
 }
 declare const useCanvasStore: import("zustand").UseBoundStore<ScrollRigStore, import("zustand").StoreApi<ScrollRigStore>>;
 export { useCanvasStore };
